@@ -236,10 +236,13 @@ Address::init(const std::string& addr) {
         //IPv6 address
         host_ = addr.substr(s_pos+1, pos-1);
         family_ = AF_INET6;
+        if (host_.length() > INET6_ADDRSTRLEN) {
+            throw std::invalid_argument("Invalid IPv6 address: exceeds max length");
+        }
         try {
             in6_addr addr6;
             char buff6[INET6_ADDRSTRLEN+1];
-            memcpy(buff6, host_.c_str(), INET6_ADDRSTRLEN);
+            strcpy(buff6, host_.c_str());
             inet_pton(AF_INET6, buff6, &(addr6.s6_addr16));
         } catch (std::runtime_error) {
             throw std::invalid_argument("Invalid IPv6 address");
@@ -252,13 +255,16 @@ Address::init(const std::string& addr) {
             throw std::invalid_argument("Invalid address");
         host_ = addr.substr(0, pos);
         family_ = AF_INET;
+        if (host_.length() > INET_ADDRSTRLEN) {
+            throw std::invalid_argument("Invalid IPv4 address: exceeds max length");
+        }
         if (host_ == "*") {
             host_ = "0.0.0.0";
         }
         try {
             in_addr addr;
             char buff[INET_ADDRSTRLEN+1];
-            memcpy(buff, host_.c_str(), INET_ADDRSTRLEN);
+            strcpy(buff, host_.c_str());
             inet_pton(AF_INET, buff, &(addr));
         } catch (std::runtime_error) {
             throw std::invalid_argument("Invalid IPv4 address");
